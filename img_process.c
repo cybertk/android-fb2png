@@ -27,7 +27,7 @@ int rgb565_to_rgb888(const char* src, char* dst, size_t pixel)
     struct rgb888  *to;
 
     from = (struct rgb565 *) src;
-    to = dst;
+    to = (struct rgb888 *) dst;
 
     int i = 0;
     /* traverse pixel of the row */
