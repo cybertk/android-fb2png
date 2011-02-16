@@ -4,5 +4,5 @@ LDFLAGS += -lpng
 fb2png: fb2png.o img_process.o
 
 clean:
-	rm fb2png.o
+	rm *.o
 	rm fb2png
