@@ -6,17 +6,18 @@
 #
 #
 
-PNG=/data/local/fbdump
+ADB_OPTIONS=
+PNG="/data/local/fbdump.png"
 
 if [ ! "$FB2PNG" = "" ];
 then
 
-adb -d push $FB2PNG /data/local
-adb -d shell chmod 777 /data/local
-adb -d shell /data/local/fb2png $PNG
+adb $ADB_OPTIONS push $FB2PNG /data/local
+adb $ADB_OPTIONS shell chmod 777 /data/local
+adb $ADB_OPTIONS shell /data/local/fb2png
 
-adb -d pull $PNG.png
-adb -d shell rm $PNG.png
+adb $ADB_OPTIONS pull $PNG
+adb $ADB_OPTIONS shell rm $PNG
 else
     echo "define \$FB2PNG first"
 fi

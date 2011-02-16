@@ -9,6 +9,12 @@
 #include "log.h"
 #include "img_process.h"
 
+#ifdef ARCH_x86
+    #define DEFAULT_SAVE_PATH "fbdump.png"
+#else
+    #define DEFAULT_SAVE_PATH "/data/local/fbdump.png"
+#endif
+
 /* This version number defines the format of the fbinfo struct.
    It must match versioning in ddms where this data is consumed. */
 #define DDMS_RAWIMAGE_VERSION 1
@@ -40,7 +46,21 @@ int main(int argc, char *argv[])
     char *x;
     char *rgb_matrix;
 
+    char fn[128];
+
     int i;
+
+    if (argc == 2) {
+        //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
+        if (argv[1][0] == '-') {
+            printf("Usage: fb2png [path/to/png]\n");
+            exit(0);
+        } else {
+            sprintf(fn, "%s", argv[1]);
+        }
+    } else {
+        sprintf(fn, "%s", DEFAULT_SAVE_PATH);
+    }
 
 #ifdef ARCH_x86
     fb = open("/dev/fb0", O_RDONLY);
@@ -118,9 +138,6 @@ int main(int argc, char *argv[])
     }
 
     if (ret) { E("error process image"); goto done; }
-
-    char fn[128];
-    sprintf(fn, "%s.png", argv[1]);
 
     fp = fopen(fn, "w");
     if (!fp)
