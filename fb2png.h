@@ -1,5 +1,7 @@
 /*
- *   Author: Kyan He <kyan.ql.he@gmail.com>
+ *   -- http://android-fb2png.googlecode.com/svn/trunk/fb2png.h --
+ *
+ *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -15,8 +17,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __FB2PNG_H
-#define __FB2PNG_H
+
+#ifndef __FB2PNG_H__
+#define __FB2PNG_H__
 
 int fb2png(const char *path);
 

@@ -1,5 +1,7 @@
 /*
- *   Author: Kyan He <kyan.ql.he@gmail.com>
+ *   -- http://android-fb2png.googlecode.com/svn/trunk/img_process.h --
+ *
+ *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -15,8 +17,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __IMG_PROCESS_H
-#define __IMG_PROCESS_H
+
+#ifndef __IMG_PROCESS_H__
+#define __IMG_PROCESS_H__
 
 typedef struct rgb888 {
         char r;

@@ -1,5 +1,7 @@
 /*
- *   Author: Kyan He <kyan.ql.he@gmail.com>
+ *   -- http://android-fb2png.googlecode.com/svn/trunk/img_process.c --
+ *
+ *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
