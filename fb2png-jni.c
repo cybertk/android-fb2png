@@ -15,47 +15,14 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __KYAN_LOG_H
-#define __KYAN_LOG_H
 
+#include <jni.h>
 
-#ifdef ANDROID
+#include "fb2png.h"
 
-#define LOG_TAG "fb2png"
-#include <utils/Log.h>
-
-#define D LOGD
-#define E LOGE
-
-#else
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
-static void
-D(const char *msg, ...)
+jint Java_im_kyan_android_graphics_FrameBuffer_captureScreen( JNIEnv *env,
+                                          jobject this,
+                                          jstring path )
 {
-    va_list ap;
-
-    va_start (ap, msg);
-    vfprintf(stdout, msg, ap);
-    va_end (ap);
-    fflush(stdout);
+    return fb2png("/data/local/fbdump.png");
 }
-
-static void
-E(const char *msg, ...)
-{
-    va_list ap;
-
-    va_start (ap, msg);
-    vfprintf(stderr, msg, ap);
-    va_end (ap);
-
-    exit(EXIT_FAILURE);
-}
-
-#endif /* ANDROID */
-
-#endif

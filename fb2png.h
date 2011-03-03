@@ -15,47 +15,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __KYAN_LOG_H
-#define __KYAN_LOG_H
+#ifndef __FB2PNG_H
+#define __FB2PNG_H
 
-
-#ifdef ANDROID
-
-#define LOG_TAG "fb2png"
-#include <utils/Log.h>
-
-#define D LOGD
-#define E LOGE
-
-#else
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
-static void
-D(const char *msg, ...)
-{
-    va_list ap;
-
-    va_start (ap, msg);
-    vfprintf(stdout, msg, ap);
-    va_end (ap);
-    fflush(stdout);
-}
-
-static void
-E(const char *msg, ...)
-{
-    va_list ap;
-
-    va_start (ap, msg);
-    vfprintf(stderr, msg, ap);
-    va_end (ap);
-
-    exit(EXIT_FAILURE);
-}
-
-#endif /* ANDROID */
+int fb2png(const char *path);
 
 #endif

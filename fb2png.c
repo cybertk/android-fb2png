@@ -86,37 +86,21 @@ int map_framebuffer(const char* path, struct fb* fb)
     offset = 0;
 #endif
 
-    fb->data = mmap(0, vinfo.xres * vinfo.yoffset * bytespp,
+    fb->data = mmap(0, vinfo.xres * vinfo.yres * bytespp,
                     PROT_READ, MAP_SHARED, fd, offset);
-    if (!fb->data) return -1;
+    if (fb->data == MAP_FAILED) return -1;
 
     close(fd);
 
     return 0;
 }
 
-int main(int argc, char *argv[])
+int fb2png(const char *path)
 {
     FILE *fp;
     struct fb fb;
     char *rgb_matrix;
-    char fn[128];
     int i, ret;
-
-    if (argc == 2) {
-        //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
-        if (argv[1][0] == '-') {
-            printf(
-                "Usage: fb2png [path/to/output.png]\n"
-                "    The default output path is /data/local/fbdump.png\n"
-                );
-            exit(0);
-        } else {
-            sprintf(fn, "%s", argv[1]);
-        }
-    } else {
-        sprintf(fn, "%s", DEFAULT_SAVE_PATH);
-    }
 
 #ifdef ANDROID
     ret = map_framebuffer("/dev/graphics/fb0", &fb);
@@ -126,11 +110,11 @@ int main(int argc, char *argv[])
 
     if(ret < 0) {
         D("Cannnot open framebuffer\n");
-        goto done;
+        return -1;
     }
 
     rgb_matrix = malloc(fb.width * fb.height * 3);
-    if(!rgb_matrix) goto done;
+    if(!rgb_matrix) return -2;
 
     switch(fb.format) {
     case FB_FORMAT_RGB565:
@@ -145,21 +129,24 @@ int main(int argc, char *argv[])
         D("treat framebuffer as rgb888\n");
     }
 
-    if (ret) { E("error process image"); goto done; }
+    if (ret) { 
+        E("error process image");
+        free(rgb_matrix);
+        return -3;
+    }
 
-    fp = fopen(fn, "w");
-    if (!fp)
-        E("Cannot open file %s for write\n", fn);
+    fp = fopen(path, "w");
+    if (!fp) {
+        E("Cannot open file %s for write\n", path);
+        free(rgb_matrix);
+        return -4;
+    }
 
     if (save_png(fp, rgb_matrix, fb.width, fb.height))
         E("save_png");
 
-    D("OKAY\n");
-
+    free(rgb_matrix);
     fclose(fp);
-
-done:
-    if (!rgb_matrix) free(rgb_matrix);
 
     return 0;
 }

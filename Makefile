@@ -1,7 +1,7 @@
-CFLAGS += -DARCH_x86
+CFLAGS += -DARCH_x86 -g
 LDFLAGS += -lpng
 
-fb2png: fb2png.o img_process.o
+fb2png: main.o fb2png.o img_process.o
 
 clean:
 	rm *.o
