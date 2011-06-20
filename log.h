@@ -15,13 +15,16 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __KYAN_LOG_H
-#define __KYAN_LOG_H
+#ifndef __KYAN_LOG_H__
+#define __KYAN_LOG_H__
 
 
 #ifdef ANDROID
 
-#define LOG_TAG "fb2png"
+#ifndef LOG_TAG
+#define LOG_TAG "im.kyan"
+#endif
+
 #include <utils/Log.h>
 
 #define D LOGD
@@ -33,6 +36,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#if DEBUG == 1
+
+#define LOG_FUNCTION_NAME \
+            fprintf(stderr, "\033[0;1;31m__func__: %s\033[0;0m\n", __FUNCTION__);
+
+#else
+
+#define LOG_FUNCTION_NAME
+
+#endif
+
 static void
 D(const char *msg, ...)
 {
@@ -40,6 +54,7 @@ D(const char *msg, ...)
 
     va_start (ap, msg);
     vfprintf(stdout, msg, ap);
+    fprintf(stdout, "\n");
     va_end (ap);
     fflush(stdout);
 }
@@ -51,6 +66,7 @@ E(const char *msg, ...)
 
     va_start (ap, msg);
     vfprintf(stderr, msg, ap);
+    fprintf(stderr, "\n");
     va_end (ap);
 
     exit(EXIT_FAILURE);
