@@ -63,16 +63,16 @@ static int fb_get_format(const struct fb *fb)
         return FB_FORMAT_RGB565;
 
     /* TODO: validate */
-    if (ao == 24 && ro == 16)
+    if (ao == 0 && ro == 8)
         return FB_FORMAT_ARGB8888;
 
-    if (ao == 24 && bo == 16)
+    if (ao == 0 && bo == 8)
         return FB_FORMAT_ABGR8888;
 
-    if (ro == 24)
+    if (ro == 0)
         return FB_FORMAT_RGBA8888;
 
-    if (bo == 24)
+    if (bo == 0)
         return FB_FORMAT_BGRA8888;
 
     /* fallback */
@@ -88,17 +88,27 @@ int fb_save_png(const struct fb *fb, const char *path)
     rgb_matrix = malloc(fb->width * fb->height * 3);
     if(!rgb_matrix) goto oops;
 
-    switch(fb_get_format(fb)) {
+    int fmt = fb_get_format(fb);
+    D("Framebuffer Image Format: %d", fmt);
+
+    switch(fmt) {
         case FB_FORMAT_RGB565:
             /* emulator use rgb565 */
-            ret = rgb565_to_rgb888(fb->data, rgb_matrix, fb->width * fb->height);
+            ret = rgb565_to_rgb888(fb->data,
+                    rgb_matrix, fb->width * fb->height);
             break;
         case FB_FORMAT_ARGB8888:
             /* most devices use argb8888 */
-            ret = argb8888_to_rgb888(fb->data, rgb_matrix, fb->width * fb->height);
+            ret = argb8888_to_rgb888(fb->data,
+                    rgb_matrix, fb->width * fb->height);
             break;
-dafault:
-            D("treat framebuffer as rgb888\n");
+        case FB_FORMAT_BGRA8888:
+            ret = bgra8888_to_rgb888(fb->data,
+                    rgb_matrix, fb->width * fb->height);
+            break;
+        dafault:
+            D("Unsupport framebuffer type");
+            goto oops;
     }
 
     if (ret) {
