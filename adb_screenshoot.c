@@ -24,9 +24,8 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <linux/fb.h>
 
-#include "fb2png.h"
+#include "fb.h"
 #include "log.h"
 
 #define DEFAULT_SAVE_PATH "fbdump.png"
@@ -77,6 +76,11 @@ static int remote_socket(const char *host, int port)
 char *target = "usb";
 static int adb_fd;
 
+/**
+ * Write command through adb protocol.
+ * Return
+ *      Bytes have been wrote.
+ */
 static int adb_write(const char *cmd)
 {
     char buf[1024];
@@ -87,10 +91,17 @@ static int adb_write(const char *cmd)
 
     write(adb_fd, buf, sz);
 
+#if 0
     D("<< %s", buf);
+#endif
     return sz;
 }
 
+/**
+ * Read data through adb protocol.
+ * Return
+ *      Bytes have been read.
+ */
 static int adb_read(char *buf, int sz)
 {
     sz = read(adb_fd, buf, sz);
@@ -98,16 +109,16 @@ static int adb_read(char *buf, int sz)
         E("Fail to read from adb socket, %s", strerror(errno));
     }
     buf[sz] = '\0';
-
-    D(">> %s", buf);
+#if 0
+    D(">> %d", sz);
+#endif
     return sz;
 }
 
-static void get_framebuffer()
+static int get_fb_from_adb(struct fb *fb)
 {
     char buf[1024];
     const struct fbinfo* fbinfo;
-    struct fb_var_screeninfo vinfo;
 
     /* Init socket */
     adb_fd = remote_socket("localhost", 5037);
@@ -124,33 +135,37 @@ static void get_framebuffer()
     /* Parse FB header. */
     adb_read(buf, sizeof(struct fbinfo));
     fbinfo = (struct fbinfo*) buf;
-    {
-        if (fbinfo->version != DDMS_RAWIMAGE_VERSION) {
-            E("unspport adb version");
-        }
 
-        vinfo.bits_per_pixel = fbinfo->bpp;
-        vinfo.xres = fbinfo->width;
-        vinfo.yres = fbinfo->height;
-
-        /* RGBA */
-        vinfo.red.offset = fbinfo->red_offset;
-        vinfo.red.length = fbinfo->red_length;
-        vinfo.green.offset = fbinfo->green_offset;
-        vinfo.green.length = fbinfo->green_length;
-        vinfo.blue.offset = fbinfo->blue_offset;
-        vinfo.blue.length = fbinfo->blue_length;
-        vinfo.transp.offset = fbinfo->alpha_offset;
-        vinfo.transp.length = fbinfo->alpha_length;
+    if (fbinfo->version != DDMS_RAWIMAGE_VERSION) {
+        E("unspport adb version");
     }
 
-    //dump_fb_var_screeninfo(&vinfo);
+    /* Assemble struct fb */
+    memcpy(fb, &fbinfo->bpp, sizeof(struct fbinfo) - 4);
+    fb_dump(fb);
 
-    char *fb_data = malloc(fbinfo->size);
-    if (!fb_data) { E("ENOMEM"); }
+    fb->data = malloc(fb->size);
+    if (!fb->data) return -1;
 
-    adb_read(fb_data, fbinfo->size);
-    D("done");
+    /* Read out the whole framebuffer */
+    int bytes_read = 0;
+    while (bytes_read < fb->size) {
+        bytes_read += adb_read(fb->data + bytes_read, fb->size - bytes_read);
+    }
+
+    return 0;
+}
+
+int fb2png(const char* path)
+{
+    struct fb fb;
+
+    if (get_fb_from_adb(&fb)) {
+        D("cannot get framebuffer.");
+        return -1;
+    }
+
+    return fb_save_png(&fb, path);
 }
 
 int main(int argc, char *argv[])
@@ -162,7 +177,7 @@ int main(int argc, char *argv[])
         if (argv[1][0] == '-') {
             printf(
                 "Usage: fb2png [path/to/output.png]\n"
-                "    The default output path is /data/local/fbdump.png\n"
+                "    The default output path is ./fbdump.png\n"
                 );
             exit(0);
         } else {
@@ -172,6 +187,5 @@ int main(int argc, char *argv[])
         sprintf(fn, "%s", DEFAULT_SAVE_PATH);
     }
 
-    get_framebuffer();
-    //return fb2png(fn);
+    return fb2png(fn);
 }
