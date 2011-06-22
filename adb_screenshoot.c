@@ -144,7 +144,7 @@ static void get_framebuffer()
         vinfo.transp.length = fbinfo->alpha_length;
     }
 
-    dump_fb_var_screeninfo(&vinfo);
+    //dump_fb_var_screeninfo(&vinfo);
 
     char *fb_data = malloc(fbinfo->size);
     if (!fb_data) { E("ENOMEM"); }

@@ -1,5 +1,5 @@
 /*
- *   -- http://android-fb2png.googlecode.com/svn/trunk/img_process.h --
+ *   -- http://android-fb2png.googlecode.com/svn/trunk/fb.h --
  *
  *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
  *
@@ -18,27 +18,25 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __IMG_PROCESS_H__
-#define __IMG_PROCESS_H__
+#ifndef __FB_H__
+#define __FB_H__
 
-typedef struct rgb888 {
-        char r;
-        char g;
-        char b;
-} rgb888_t;
+struct fb {
+    unsigned int bpp;
+    unsigned int size;
+    unsigned int width;
+    unsigned int height;
+    unsigned int red_offset;
+    unsigned int red_length;
+    unsigned int blue_offset;
+    unsigned int blue_length;
+    unsigned int green_offset;
+    unsigned int green_length;
+    unsigned int alpha_offset;
+    unsigned int alpha_length;
+    void* data;
+};
 
-typedef rgb888_t rgb24_t;
-
-typedef struct rgb565 {
-        short b:5;
-        short g:6;
-        short r:5;
-} rgb565_t;
-
-int rgb565_to_rgb888(const char* src, char* dst, size_t pixel);
-
-int argb8888_to_rgb888(const char* src, char* dst, size_t pixel);
-
-int save_png(const char* path, const char* data, int width, int height);
+int fb_save_png(const struct fb *fb, const char *path);
 
 #endif

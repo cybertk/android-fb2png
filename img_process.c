@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <png.h>
 
 #include "img_process.h"
@@ -99,11 +100,18 @@ png_simple_warning_callback (png_structp png,
 }
 
 /* save rgb888 to png format in fp */
-int save_png(FILE* fp, const char* data, int width, int height)
+int save_png(const char* path, const char* data, int width, int height)
 {
+    FILE *fp;
     png_byte **volatile rows;
     png_struct *png;
     png_info *info;
+
+    fp = fopen(path, "w");
+    if (!fp) {
+        E("Cannot open file %s for write\n", path);
+        return -ENONET;
+    }
 
     rows = malloc(height * sizeof rows[0]);
     if (!rows) goto oops;

@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -28,7 +27,8 @@
 #include <errno.h>
 
 #include "log.h"
-#include "img_process.h"
+#include "fb2png.h"
+#include "fb.h"
 
 #ifdef ANDROID
     #define DEFAULT_SAVE_PATH "/data/local/fbdump.png"
@@ -36,33 +36,12 @@
     #define DEFAULT_SAVE_PATH "fbdump.png"
 #endif
 
-struct fb {
-    unsigned int width;
-    unsigned int height;
-#define FB_FORMAT_RGB565    0
-#define FB_FORMAT_ARGB8888  1
-    unsigned int format;
-    char* data;
-};
-
-void dump_fb_var_screeninfo(const struct fb_var_screeninfo* vinfo)
-{
-    D("%12s : %d\n", "bpp", vinfo->bits_per_pixel);
-    D("%12s : %d\n", "width", vinfo->xres);
-    D("%12s : %d\n", "height", vinfo->yres);
-    D("%12s : %d\n", "vwidth", vinfo->xres_virtual);
-    D("%12s : %d\n", "vheight", vinfo->yres_virtual);
-    D("%12s : %d\n", "r_offset", vinfo->red.offset);
-    D("%12s : %d\n", "g_offset", vinfo->green.offset);
-    D("%12s : %d\n", "b_offset", vinfo->blue.offset);
-    D("%12s : %d\n", "a_offset", vinfo->transp.offset);
-    D("%12s : %d\n", "r_length", vinfo->red.length);
-    D("%12s : %d\n", "g_length", vinfo->green.length);
-    D("%12s : %d\n", "b_length", vinfo->blue.length);
-    D("%12s : %d\n", "a_length", vinfo->transp.length);
-}
-
-int map_framebuffer(const char* path, struct fb* fb)
+/**
+ * Get the {@code struct fb} from device's framebuffer.
+ * Return
+ *      0 for success.
+ */
+int get_device_fb(const char* path, struct fb *fb)
 {
     int fd;
     int bytespp;
@@ -81,16 +60,6 @@ int map_framebuffer(const char* path, struct fb* fb)
     fb->width = vinfo.xres;
     fb->height = vinfo.yres;
 
-    dump_fb_var_screeninfo(&vinfo);
-
-    /* TODO: determine image format according to fb_bitfield of 
-     *       red/green/blue */
-    if (bytespp == 2) {
-        fb->format = FB_FORMAT_RGB565;
-    } else {
-        fb->format = FB_FORMAT_ARGB8888;
-    }
-
 #ifdef ANDROID
     /* HACK: for several of 3d cores a specific alignment
      * is required so the start of the fb may not be an integer number of lines
@@ -107,66 +76,64 @@ int map_framebuffer(const char* path, struct fb* fb)
 #endif
 
     fb->data = mmap(0, vinfo.xres * vinfo.yres * bytespp,
-                    PROT_READ, MAP_SHARED, fd, offset);
+            PROT_READ, MAP_SHARED, fd, offset);
     if (fb->data == MAP_FAILED) return -1;
 
     close(fd);
+
+    fb->bpp = vinfo.bits_per_pixel;
+    fb->size = vinfo.xres * vinfo.yres * bytespp;
+    fb->width = vinfo.xres;
+    fb->height = vinfo.yres;
+    fb->red_offset = vinfo.red.offset;
+    fb->red_length = vinfo.red.length;
+    fb->green_offset = vinfo.green.offset;
+    fb->green_length = vinfo.green.length;
+    fb->blue_offset = vinfo.blue.offset;
+    fb->blue_length = vinfo.blue.length;
+    fb->alpha_offset = vinfo.transp.offset;
+    fb->alpha_length = vinfo.transp.length;
 
     return 0;
 }
 
 int fb2png(const char *path)
 {
-    FILE *fp;
     struct fb fb;
-    char *rgb_matrix;
-    int i, ret;
+    int ret;
 
 #ifdef ANDROID
-    ret = map_framebuffer("/dev/graphics/fb0", &fb);
+    ret = get_device_fb("/dev/fb0", &fb);
 #else
-    ret = map_framebuffer("/dev/fb0", &fb);
+    ret = get_device_fb("/dev/graphics/fb0", &fb);
 #endif
 
-    if(ret < 0) {
-        D("Cannnot open framebuffer\n");
+    if (!ret) {
+        D("cannot get framebuffer.");
         return -1;
     }
 
-    rgb_matrix = malloc(fb.width * fb.height * 3);
-    if(!rgb_matrix) return -2;
+    return fb_save_png(&fb, path);
+}
 
-    switch(fb.format) {
-    case FB_FORMAT_RGB565:
-        /* emulator use rgb565 */
-        ret = rgb565_to_rgb888(fb.data, rgb_matrix, fb.width * fb.height);
-        break;
-    case FB_FORMAT_ARGB8888:
-        /* most devices use argb8888 */
-        ret = argb8888_to_rgb888(fb.data, rgb_matrix, fb.width * fb.height);
-        break;
-    dafault:
-        D("treat framebuffer as rgb888\n");
+int main(int argc, char *argv[])
+{
+    char fn[128];
+
+    if (argc == 2) {
+        //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
+        if (argv[1][0] == '-') {
+            printf(
+                "Usage: fb2png [path/to/output.png]\n"
+                "    The default output path is /data/local/fbdump.png\n"
+                );
+            exit(0);
+        } else {
+            sprintf(fn, "%s", argv[1]);
+        }
+    } else {
+        sprintf(fn, "%s", DEFAULT_SAVE_PATH);
     }
 
-    if (ret) { 
-        E("error process image");
-        free(rgb_matrix);
-        return -3;
-    }
-
-    fp = fopen(path, "w");
-    if (!fp) {
-        E("Cannot open file %s for write\n", path);
-        free(rgb_matrix);
-        return -4;
-    }
-
-    if (save_png(fp, rgb_matrix, fb.width, fb.height))
-        E("save_png");
-
-    free(rgb_matrix);
-    fclose(fp);
-
-    return 0;
+    return fb2png(fn);
 }
