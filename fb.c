@@ -89,7 +89,7 @@ int fb_save_png(const struct fb *fb, const char *path)
     if(!rgb_matrix) goto oops;
 
     int fmt = fb_get_format(fb);
-    D("Framebuffer Image Format: %d", fmt);
+    D("Framebuffer Pixel Format: %d", fmt);
 
     switch(fmt) {
         case FB_FORMAT_RGB565:

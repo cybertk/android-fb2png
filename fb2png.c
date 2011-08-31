@@ -145,5 +145,9 @@ int main(int argc, char *argv[])
         sprintf(fn, "%s", DEFAULT_SAVE_PATH);
     }
 
-    return fb2png(fn);
+    fb2png(fn);
+
+    printf("Saved to %s\n", fn);
+
+    exit(0);
 }
