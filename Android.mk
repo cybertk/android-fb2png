@@ -22,6 +22,8 @@ fb2png_includes := \
 LOCAL_SRC_FILES := $(fb2png_src)
 LOCAL_C_INCLUDES += $(fb2png_includes)
 
+LOCAL_CFLAGS += -DANDROID
+
 LOCAL_SHARED_LIBRARIES := libz libutils
 LOCAL_STATIC_LIBRARIES := libpng
 
