@@ -46,6 +46,7 @@ int get_device_fb(const char* path, struct fb *fb)
     int fd;
     int bytespp;
     int offset;
+    char *x;
     struct fb_var_screeninfo vinfo;
 
     fd = open(path, O_RDONLY);
@@ -57,29 +58,6 @@ int get_device_fb(const char* path, struct fb *fb)
     }
 
     bytespp = vinfo.bits_per_pixel / 8;
-    fb->width = vinfo.xres;
-    fb->height = vinfo.yres;
-
-#ifdef ANDROID
-    /* HACK: for several of 3d cores a specific alignment
-     * is required so the start of the fb may not be an integer number of lines
-     * from the base.  As a result we are storing the additional offset in
-     * xoffset. This is not the correct usage for xoffset, it should be added
-     * to each line, not just once at the beginning */
-
-    offset = vinfo.xoffset * bytespp;
-
-    /* Android use double-buffer, capture 2nd */
-    offset += vinfo.xres * vinfo.yoffset * bytespp * 2;
-#else
-    offset = 0;
-#endif
-
-    fb->data = mmap(0, vinfo.xres * vinfo.yres * bytespp,
-            PROT_READ, MAP_SHARED, fd, offset);
-    if (fb->data == MAP_FAILED) return -1;
-
-    close(fd);
 
     fb->bpp = vinfo.bits_per_pixel;
     fb->size = vinfo.xres * vinfo.yres * bytespp;
@@ -94,7 +72,37 @@ int get_device_fb(const char* path, struct fb *fb)
     fb->alpha_offset = vinfo.transp.offset;
     fb->alpha_length = vinfo.transp.length;
 
+#ifdef ANDROID
+    /* HACK: for several of 3d cores a specific alignment
+     * is required so the start of the fb may not be an integer number of lines
+     * from the base.  As a result we are storing the additional offset in
+     * xoffset. This is not the correct usage for xoffset, it should be added
+     * to each line, not just once at the beginning */
+
+    offset = vinfo.xoffset * bytespp;
+
+    /* Android use double-buffer, capture 2nd */
+    offset += vinfo.xres * vinfo.yoffset * bytespp;
+#else
+    offset = 0;
+#endif
+
+    x = malloc(fb->size);
+    if (!x) return -1;
+
+    lseek(fd, offset, SEEK_SET);
+
+    if (read(fd, x ,fb->size) != fb->size) goto oops;
+
+    fb->data = x;
+    close(fd);
+
     return 0;
+
+oops:
+    close(fd);
+    free(x);
+    return -1;
 }
 
 int fb2png(const char *path)
@@ -103,15 +111,17 @@ int fb2png(const char *path)
     int ret;
 
 #ifdef ANDROID
-    ret = get_device_fb("/dev/fb0", &fb);
-#else
     ret = get_device_fb("/dev/graphics/fb0", &fb);
+#else
+    ret = get_device_fb("/dev/fb0", &fb);
 #endif
 
-    if (!ret) {
-        D("cannot get framebuffer.");
+    if (ret) {
+        D("Failed to read framebuffer.");
         return -1;
     }
+
+    fb_dump(&fb);
 
     return fb_save_png(&fb, path);
 }
