@@ -82,7 +82,7 @@ static int fb_get_format(const struct fb *fb)
 int fb_save_png(const struct fb *fb, const char *path)
 {
     char *rgb_matrix;
-    int ret;
+	int ret = 0;
 
     /* Allocate RGB Matrix. */
     rgb_matrix = malloc(fb->width * fb->height * 3);
@@ -106,6 +106,11 @@ int fb_save_png(const struct fb *fb, const char *path)
             ret = bgra8888_to_rgb888(fb->data,
                     rgb_matrix, fb->width * fb->height);
             break;
+		case FB_FORMAT_RGBA8888:
+	        ret = rgba8888_to_rgb888(fb->data,
+	        	    rgb_matrix, fb->width * fb->height);
+            break;
+		
         dafault:
             D("Unsupport framebuffer type");
             goto oops;
