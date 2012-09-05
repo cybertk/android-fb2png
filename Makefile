@@ -3,7 +3,7 @@ LDFLAGS += -lpng
 
 ALL: fb2png adb_screenshoot
 
-fb2png: fb.o img_process.o fb2png.o
+fb2png: main.o fb.o img_process.o fb2png.o
 
 adb_screenshoot: adb_screenshoot.o fb.o img_process.o
 
