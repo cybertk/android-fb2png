@@ -21,6 +21,12 @@
 #ifndef __IMG_PROCESS_H__
 #define __IMG_PROCESS_H__
 
+/**
+ * rgba8888 is found on Desire HD Linux localhost 2.6.35.10-g931a37e #1
+ *      PREEMPT Wed Nov 9 14:04:03 CST 2011 armv7l GNU/Linux
+ */
+
+
 typedef struct rgb888 {
         char r;
         char g;
@@ -43,6 +49,13 @@ typedef struct bgra8888 {
         char a;
 } bgra8888_t;
 
+typedef struct rgba8888 {
+        char r;
+        char g;
+        char b;
+        char a;
+} rgba8888_t;
+
 typedef struct rgb565 {
         short b:5;
         short g:6;
@@ -54,6 +67,8 @@ int rgb565_to_rgb888(const char* src, char* dst, size_t pixel);
 int argb8888_to_rgb888(const char* src, char* dst, size_t pixel);
 
 int bgra8888_to_rgb888(const char* src, char* dst, size_t pixel);
+
+int rgba8888_to_rgb888(const char* src, char* dst, size_t pixel);
 
 int save_png(const char* path, const char* data, int width, int height);
 
