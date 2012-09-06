@@ -59,7 +59,7 @@ static int fb_get_format(const struct fb *fb)
 #define FB_FORMAT_BGRA8888  5
 
     /* TODO: use offset */
-    if (fb->bpp == 2)
+    if (fb->bpp == 16)
         return FB_FORMAT_RGB565;
 
     /* TODO: validate */
