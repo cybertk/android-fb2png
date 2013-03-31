@@ -82,7 +82,7 @@ static int fb_get_format(const struct fb *fb)
 int fb_save_png(const struct fb *fb, const char *path)
 {
     char *rgb_matrix;
-    int ret = 0;
+    int ret = -1;
 
     /* Allocate RGB Matrix. */
     rgb_matrix = malloc(fb->width * fb->height * 3);
@@ -131,5 +131,5 @@ int fb_save_png(const struct fb *fb, const char *path)
 oops:
     free(rgb_matrix);
 
-    return 0;
+    return ret;
 }

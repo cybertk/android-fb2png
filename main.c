@@ -30,6 +30,7 @@
 int main(int argc, char *argv[])
 {
     char fn[128];
+    int ret;
 
     if (argc == 2) {
         //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
@@ -46,9 +47,10 @@ int main(int argc, char *argv[])
         snprintf(fn, sizeof fn, "%s", DEFAULT_SAVE_PATH);
     }
 
-    fb2png(fn);
+    ret = fb2png(fn);
+    if (!ret) {
+        printf("Saved image to %s\n", fn);
+    }
 
-    printf("Saved to %s\n", fn);
-
-    exit(0);
+    exit(ret);
 }
