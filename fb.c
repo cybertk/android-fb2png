@@ -111,18 +111,18 @@ int fb_save_png(const struct fb *fb, const char *path)
                     rgb_matrix, fb->width * fb->height);
             break;
         default:
-            D("Unsupported framebuffer type");
+            D("Unsupported framebuffer type.");
             goto oops;
     }
 
     if (ret) {
-        D("error process image.");
+        D("Error while processing input image.");
         goto oops;
     }
 
     /* Save in PNG format. */
     if (save_png(path, rgb_matrix, fb->width, fb->height))
-        D("failed to save in PNG format.");
+        D("Failed to save in PNG format.");
 
 oops:
     free(rgb_matrix);
