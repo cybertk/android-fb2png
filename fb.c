@@ -125,8 +125,10 @@ int fb_save_png(const struct fb *fb, const char *path)
     }
 
     /* Save in PNG format. */
-    if (save_png(path, rgb_matrix, fb->width, fb->height))
+    if (save_png(path, rgb_matrix, fb->width, fb->height)) {
         D("Failed to save in PNG format.");
+        ret = -1;
+    }
 
 oops:
     free(rgb_matrix);

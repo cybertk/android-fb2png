@@ -193,11 +193,11 @@ int save_png(const char* path, const char* data, int width, int height)
     fp = fopen(path, "w");
     if (!fp) {
         E("Cannot open file %s for write\n", path);
-        return -ENONET;
+        return errno;
     }
 
     rows = malloc(height * sizeof rows[0]);
-    if (!rows) goto oops;
+    if (!rows) return -1;
 
     int i;
     for (i = 0; i < height; i++)
@@ -206,12 +206,17 @@ int save_png(const char* path, const char* data, int width, int height)
     png = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL,
                                png_simple_error_callback,
                                png_simple_warning_callback);
-    if (!png)
+    if (!png) {
         E("png_create_write_struct failed\n");
+        goto oops;
+    }
 
     info = png_create_info_struct (png);
-    if (!info)
+    if (!info) {
         E("png_create_info_struct failed\n");
+        png_destroy_write_struct (&png, NULL);
+        goto oops;
+    }
 
     png_set_write_fn (png, fp, stdio_write_func, png_simple_output_flush_fn);
     png_set_IHDR (png, info,
@@ -237,9 +242,12 @@ int save_png(const char* path, const char* data, int width, int height)
 
     png_destroy_write_struct (&png, &info);
 
+    fclose(fp);
     free (rows);
     return 0;
 
 oops:
+    fclose(fp);
+    free (rows);
     return -1;
 }
