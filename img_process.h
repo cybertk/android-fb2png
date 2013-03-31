@@ -42,6 +42,13 @@ typedef struct argb8888 {
         char b;
 } argb8888_t;
 
+typedef struct abgr8888 {
+        char a;
+        char b;
+        char g;
+        char r;
+} abgr8888_t;
+
 typedef struct bgra8888 {
         char b;
         char g;
@@ -65,6 +72,8 @@ typedef struct rgb565 {
 int rgb565_to_rgb888(const char* src, char* dst, size_t pixel);
 
 int argb8888_to_rgb888(const char* src, char* dst, size_t pixel);
+
+int abgr8888_to_rgb888(const char* src, char* dst, size_t pixel);
 
 int bgra8888_to_rgb888(const char* src, char* dst, size_t pixel);
 

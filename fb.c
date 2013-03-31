@@ -102,6 +102,10 @@ int fb_save_png(const struct fb *fb, const char *path)
             ret = argb8888_to_rgb888(fb->data,
                     rgb_matrix, fb->width * fb->height);
             break;
+        case FB_FORMAT_ABGR8888:
+            ret = abgr8888_to_rgb888(fb->data,
+                    rgb_matrix, fb->width * fb->height);
+            break;
         case FB_FORMAT_BGRA8888:
             ret = bgra8888_to_rgb888(fb->data,
                     rgb_matrix, fb->width * fb->height);
