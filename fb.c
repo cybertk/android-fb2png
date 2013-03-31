@@ -110,8 +110,8 @@ int fb_save_png(const struct fb *fb, const char *path)
             ret = rgba8888_to_rgb888(fb->data,
                     rgb_matrix, fb->width * fb->height);
             break;
-        dafault:
-            D("Unsupport framebuffer type");
+        default:
+            D("Unsupported framebuffer type");
             goto oops;
     }
 
