@@ -40,10 +40,10 @@ int main(int argc, char *argv[])
                 );
             exit(0);
         } else {
-            sprintf(fn, "%s", argv[1]);
+            snprintf(fn, sizeof fn, "%s", argv[1]);
         }
     } else {
-        sprintf(fn, "%s", DEFAULT_SAVE_PATH);
+        snprintf(fn, sizeof fn, "%s", DEFAULT_SAVE_PATH);
     }
 
     fb2png(fn);
