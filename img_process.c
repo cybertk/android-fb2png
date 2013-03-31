@@ -192,7 +192,7 @@ int save_png(const char* path, const char* data, int width, int height)
 
     fp = fopen(path, "w");
     if (!fp) {
-        E("Cannot open file %s for write\n", path);
+        E("Cannot open file %s for writing.\n", path);
         return errno;
     }
 
