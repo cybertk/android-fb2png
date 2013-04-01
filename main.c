@@ -30,7 +30,7 @@
 
 int main(int argc, char *argv[])
 {
-    char *fn;
+    char fn[PATH_MAX];
     int ret;
 
     if (argc == 2) {
@@ -42,13 +42,13 @@ int main(int argc, char *argv[])
                 );
             exit(0);
         }
-        fn = strdup(argv[1]);
+        if (strlen(argv[1]) >= sizeof fn) {
+            printf("File name is too long!\n");
+            exit(-1);
+        }
+        strcpy(fn, argv[1]);
     } else {
-        fn = strdup(DEFAULT_SAVE_PATH);
-    }
-
-    if (!fn) {
-      exit(-1);
+        strncpy(fn, DEFAULT_SAVE_PATH, sizeof fn);
     }
 
     ret = fb2png(fn);
@@ -56,6 +56,5 @@ int main(int argc, char *argv[])
         printf("Saved image to %s\n", fn);
     }
 
-    free(fn);
     exit(ret);
 }
