@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "fb2png.h"
 
@@ -29,7 +30,7 @@
 
 int main(int argc, char *argv[])
 {
-    char fn[128];
+    char *fn;
     int ret;
 
     if (argc == 2) {
@@ -40,11 +41,14 @@ int main(int argc, char *argv[])
                 "    The default output path is /data/local/fbdump.png\n"
                 );
             exit(0);
-        } else {
-            snprintf(fn, sizeof fn, "%s", argv[1]);
         }
+        fn = strdup(argv[1]);
     } else {
-        snprintf(fn, sizeof fn, "%s", DEFAULT_SAVE_PATH);
+        fn = strdup(DEFAULT_SAVE_PATH);
+    }
+
+    if (!fn) {
+      exit(-1);
     }
 
     ret = fb2png(fn);
@@ -52,5 +56,6 @@ int main(int argc, char *argv[])
         printf("Saved image to %s\n", fn);
     }
 
+    free(fn);
     exit(ret);
 }
