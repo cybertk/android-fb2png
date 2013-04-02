@@ -86,7 +86,7 @@ int fb_save_png(const struct fb *fb, const char *path)
 
     /* Allocate RGB Matrix. */
     rgb_matrix = malloc(fb->width * fb->height * 3);
-    if(!rgb_matrix) goto oops;
+    if (!rgb_matrix) goto oops;
 
     int fmt = fb_get_format(fb);
     D("Framebuffer Pixel Format: %d", fmt);

@@ -192,12 +192,13 @@ int save_png(const char* path, const char* data, int width, int height)
 
     fp = fopen(path, "w");
     if (!fp) {
+        int errsv = errno;
         E("Cannot open file %s for writing.\n", path);
-        return errno;
+        return errsv;
     }
 
     rows = malloc(height * sizeof rows[0]);
-    if (!rows) return -1;
+    if (!rows) goto oops;
 
     int i;
     for (i = 0; i < height; i++)

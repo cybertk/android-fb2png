@@ -33,22 +33,20 @@ int main(int argc, char *argv[])
     char fn[PATH_MAX];
     int ret;
 
-    if (argc == 2) {
-        //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
-        if (argv[1][0] == '-') {
-            printf(
-                "Usage: fb2png [path/to/output.png]\n"
-                "    The default output path is /data/local/fbdump.png\n"
-                );
-            exit(0);
-        }
-        if (strlen(argv[1]) >= sizeof fn) {
-            printf("File name is too long!\n");
+    if (argc == 2 && argv[1][0] != '-') {
+        if (strlen(argv[1]) >= sizeof(fn)) {
+            printf("Output path is too long!\n");
             exit(-1);
         }
         strcpy(fn, argv[1]);
+    } else if (argc == 1) {
+        strncpy(fn, DEFAULT_SAVE_PATH, sizeof(fn));
     } else {
-        strncpy(fn, DEFAULT_SAVE_PATH, sizeof fn);
+        printf(
+               "Usage: fb2png [path/to/output.png]\n"
+               "    The default output path is " DEFAULT_SAVE_PATH "\n"
+              );
+        exit(0);
     }
 
     ret = fb2png(fn);
