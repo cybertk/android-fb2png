@@ -32,6 +32,11 @@
 #include "fb2png.h"
 #include "fb.h"
 
+// multi buffering support
+// -1: will be auto detect (default)
+// 0 for single buffering, 1 for double, 2 for triple, 3 for 4x buffering
+int user_set_buffers_num = -1;
+
 /**
  * Get the {@code struct fb} from device's framebuffer.
  * Return
@@ -39,7 +44,6 @@
  */
 int get_device_fb(const char* path, struct fb *fb)
 {
-    int offset;
     struct fb_var_screeninfo vinfo;
     struct fb_fix_screeninfo finfo;
     unsigned char *raw;
@@ -90,21 +94,20 @@ int get_device_fb(const char* path, struct fb *fb)
         return -1;
     }
 
-#ifdef ANDROID
-    /* HACK: for several of 3d cores a specific alignment
-     * is required so the start of the fb may not be an integer number of lines
-     * from the base.  As a result we are storing the additional offset in
-     * xoffset. This is not the correct usage for xoffset, it should be added
-     * to each line, not just once at the beginning */
+    // capture active buffer: n is 0 for first buffer, 1 for second
+    // graphics.c -> set_active_framebuffer() -> vi.yoffset = n * vi.yres;
+    unsigned int active_buffer_offset = 0;
+    int num_buffers = user_set_buffers_num;
+    if (num_buffers < 0) {
+        // default: auto detect
+        num_buffers = (int)(vinfo.yoffset / vinfo.yres);
+        if (num_buffers > MAX_ALLOWED_FB_BUFFERS)
+            num_buffers = 0;
+    }
 
-    offset = vinfo.xoffset * bytespp;
-
-    /* Android use double-buffer, capture 2nd */
-    offset += vinfo.xres * vinfo.yoffset * bytespp;
-#else
-    offset = 0;
-#endif
-
+    if (finfo.smem_len >= (raw_size * (num_buffers + 1))) {
+        active_buffer_offset = raw_size * num_buffers;
+    }
 
     // display debug fb info
     fb_dump(fb);
@@ -112,8 +115,10 @@ int get_device_fb(const char* path, struct fb *fb)
     D("%13s : %u", "raw size", raw_size);
     D("%13s : %u", "yoffset", vinfo.yoffset);
     D("%13s : %u", "pad offset", (raw_line_length / bytespp) - fb->width);
+    D("%13s : %u", "buffer offset", active_buffer_offset);
 
-    lseek(fd, offset, SEEK_SET);
+    // copy the active frame buffer bits into the raw container
+    lseek(fd, active_buffer_offset, SEEK_SET);
     read_size = read(fd, raw, raw_size);
     if (read_size < 0 || (unsigned)read_size != raw_size) {
         D("read buffer error");
