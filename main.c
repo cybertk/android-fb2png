@@ -30,10 +30,23 @@
     #define DEFAULT_SAVE_PATH "fbdump.png"
 #endif
 
+void print_version() {
+    printf(
+        "\n"
+        "Android Screenshooter - fb2png\n"
+        "Author: Kyan He <kyan.ql.he@gmail.com>\n"
+        "Updated by Phil3759 & McKael @xda\n"
+        "v2.0.0 <2014> \n"
+        "\n"
+    );
+}
+
 int main(int argc, char *argv[])
 {
     char fn[PATH_MAX];
     int ret;
+
+    print_version();
 
     if (argc == 2 && argv[1][0] != '-') {
         if (strlen(argv[1]) >= sizeof(fn)) {
