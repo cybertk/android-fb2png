@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -119,6 +121,7 @@ static int get_fb_from_adb(struct fb *fb)
 {
     char buf[1024];
     const struct fbinfo* fbinfo;
+    unsigned int bytes_read;
 
     /* Init socket */
     adb_fd = remote_socket("localhost", 5037);
@@ -148,9 +151,9 @@ static int get_fb_from_adb(struct fb *fb)
     if (!fb->data) return -1;
 
     /* Read out the whole framebuffer */
-    int bytes_read = 0;
+    bytes_read = 0;
     while (bytes_read < fb->size) {
-        bytes_read += adb_read(fb->data + bytes_read, fb->size - bytes_read);
+        bytes_read += adb_read((char*)fb->data + bytes_read, fb->size - bytes_read);
     }
 
     return 0;
