@@ -2,6 +2,7 @@
  *   -- http://android-fb2png.googlecode.com/svn/trunk/adb_screenshoot.c --
  *
  *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
+ *   Copyright 2014, Mikael Berthe <mikael@lilotux.net>
  *
  *
  *   This program is free software: you can redistribute it and/or modify

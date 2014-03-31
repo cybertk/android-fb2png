@@ -2,6 +2,7 @@
  * fb2png  Save screenshot into .png.
  *
  * Copyright (C) 2012  Kyan <kyan.ql.he@gmail.com>
+ * Copyright (C) 2014  philz-cwm6 <phytowardt@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
