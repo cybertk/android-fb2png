@@ -92,7 +92,7 @@ int fb_save_png(const struct fb *fb, const char *path)
     /* Allocate RGB Matrix. */
     rgb_matrix = malloc(fb->width * fb->height * 3);
     if(!rgb_matrix) {
-        D("rgb_matrix: memory error");
+        E("rgb_matrix: memory error");
         return -1;
     }
 
@@ -123,17 +123,17 @@ int fb_save_png(const struct fb *fb, const char *path)
                     rgb_matrix, fb->width * fb->height);
             break;
         default:
-            D("Unsupported framebuffer type.");
+            E("Unsupported framebuffer type.");
             break;
     }
 
     if (ret != 0) {
-        D("Error while processing input image.");
+        E("Error while processing input image.");
     } else {
         /* Save in PNG format. */
         ret = save_png(path, rgb_matrix, fb->width, fb->height);
         if (ret != 0)
-            D("Failed to save in PNG format.");
+            E("Failed to save in PNG format.");
     }
 
     free(rgb_matrix);
