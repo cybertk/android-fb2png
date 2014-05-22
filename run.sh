@@ -6,11 +6,14 @@
 #
 #
 
-ADB_OPTIONS=
+#ADB_OPTIONS=
 PNG="/data/local/fbdump.png"
 
-if [ ! "$FB2PNG" = "" ];
-then
+FB2PNG=fb2png
+
+# To run fb2png in the Recovery:
+#adb $ADB_OPTIONS shell mount /data
+#adb $ADB_OPTIONS shell mkdir -p /data/local
 
 adb $ADB_OPTIONS push $FB2PNG /data/local
 adb $ADB_OPTIONS shell chmod 777 /data/local
@@ -18,6 +21,3 @@ adb $ADB_OPTIONS shell /data/local/fb2png
 
 adb $ADB_OPTIONS pull $PNG
 adb $ADB_OPTIONS shell rm $PNG
-else
-    echo "define \$FB2PNG first"
-fi

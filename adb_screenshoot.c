@@ -2,6 +2,7 @@
  *   -- http://android-fb2png.googlecode.com/svn/trunk/adb_screenshoot.c --
  *
  *   Copyright 2011, Kyan He <kyan.ql.he@gmail.com>
+ *   Copyright 2014, Mikael Berthe <mikael@lilotux.net>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -119,25 +122,38 @@ static int get_fb_from_adb(struct fb *fb)
 {
     char buf[1024];
     const struct fbinfo* fbinfo;
+    int bytes_read;
 
     /* Init socket */
     adb_fd = remote_socket("localhost", 5037);
     if (adb_fd < 0) {
-        E("Fail to create socket, %s", strerror(errno));
+        E("Failed to create socket, %s", strerror(errno));
+        return -1;
     }
 
     adb_write("host:transport-");
-    adb_read(buf, 1024);
+    bytes_read = adb_read(buf, 1024);
+    if (bytes_read <= 0)
+        return -1;
 
     adb_write("framebuffer:");
-    adb_read(buf, 1024);
+    bytes_read = adb_read(buf, 1024);
+    if (bytes_read <= 0)
+        return -1;
 
     /* Parse FB header. */
-    adb_read(buf, sizeof(struct fbinfo));
+    bytes_read = adb_read(buf, sizeof(struct fbinfo));
+    if (bytes_read <= 0 ||
+        (unsigned int)bytes_read < sizeof (struct fbinfo)) {
+        E("Failed to read the FB Info data!", strerror(errno));
+        return -1;
+    }
+
     fbinfo = (struct fbinfo*) buf;
 
     if (fbinfo->version != DDMS_RAWIMAGE_VERSION) {
-        E("unspport adb version");
+        E("Unsupported adb version.");
+        return -1;
     }
 
     /* Assemble struct fb */
@@ -148,9 +164,12 @@ static int get_fb_from_adb(struct fb *fb)
     if (!fb->data) return -1;
 
     /* Read out the whole framebuffer */
-    int bytes_read = 0;
-    while (bytes_read < fb->size) {
-        bytes_read += adb_read(fb->data + bytes_read, fb->size - bytes_read);
+    bytes_read = 0;
+    while ((unsigned int)bytes_read < fb->size) {
+        int br = adb_read((char*)fb->data + bytes_read, fb->size - bytes_read);
+        if (br <= 0)
+          return -1;
+        bytes_read += br;
     }
 
     return 0;
@@ -161,7 +180,7 @@ int fb2png(const char* path)
     struct fb fb;
 
     if (get_fb_from_adb(&fb)) {
-        D("cannot get framebuffer.");
+        D("Cannot get framebuffer.");
         return -1;
     }
 
@@ -173,17 +192,16 @@ int main(int argc, char *argv[])
     char fn[128];
 
     if (argc == 2) {
-        //if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
         if (argv[1][0] == '-') {
-            printf(
-                "Usage: fb2png [path/to/output.png]\n"
-                "    The default output path is ./fbdump.png\n"
-                );
+            printf("Usage: adb_screenshoot [path/to/output.png]\n"
+                   "The default output path is %s\n", DEFAULT_SAVE_PATH);
             exit(0);
         } else {
             sprintf(fn, "%s", argv[1]);
         }
     } else {
+        printf("Could not parse command line; using default path %s\n",
+               DEFAULT_SAVE_PATH);
         sprintf(fn, "%s", DEFAULT_SAVE_PATH);
     }
 

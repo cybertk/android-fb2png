@@ -27,16 +27,17 @@
 #include "fb.h"
 #include "img_process.h"
 
+// log fb info
 void fb_dump(const struct fb* fb)
 {
-    D("%12s : %d", "bpp", fb->bpp);
-    D("%12s : %d", "size", fb->size);
-    D("%12s : %d", "width", fb->width);
-    D("%12s : %d", "height", fb->height);
-    D("%12s : %d %d %d %d", "ARGB offset",
+    D("%13s : %d", "bpp", fb->bpp);
+    D("%13s : %d", "size", fb->size);
+    D("%13s : %d", "width", fb->width);
+    D("%13s : %d", "height", fb->height);
+    D("%13s : %d %d %d %d", "ARGB offset",
             fb->alpha_offset, fb->red_offset,
             fb->green_offset, fb->blue_offset);
-    D("%12s : %d %d %d %d", "ARGB length",
+    D("%13s : %d %d %d %d", "ARGB length",
             fb->alpha_length, fb->red_length,
             fb->green_length, fb->blue_length);
 }
@@ -57,6 +58,7 @@ static int fb_get_format(const struct fb *fb)
 #define FB_FORMAT_RGBA8888  3
 #define FB_FORMAT_ABGR8888  4
 #define FB_FORMAT_BGRA8888  5
+#define FB_FORMAT_RGBX8888  FB_FORMAT_RGBA8888
 
     /* TODO: use offset */
     if (fb->bpp == 16)
@@ -65,6 +67,9 @@ static int fb_get_format(const struct fb *fb)
     /* TODO: validate */
     if (ao == 0 && ro == 8)
         return FB_FORMAT_ARGB8888;
+
+    if (ao == 0 && ro == 24 && go == 16 && bo == 8)
+        return FB_FORMAT_RGBX8888;
 
     if (ao == 0 && bo == 8)
         return FB_FORMAT_ABGR8888;
@@ -86,7 +91,10 @@ int fb_save_png(const struct fb *fb, const char *path)
 
     /* Allocate RGB Matrix. */
     rgb_matrix = malloc(fb->width * fb->height * 3);
-    if (!rgb_matrix) goto oops;
+    if(!rgb_matrix) {
+        E("rgb_matrix: memory error");
+        return -1;
+    }
 
     int fmt = fb_get_format(fb);
     D("Framebuffer Pixel Format: %d", fmt);
@@ -115,23 +123,20 @@ int fb_save_png(const struct fb *fb, const char *path)
                     rgb_matrix, fb->width * fb->height);
             break;
         default:
-            D("Unsupported framebuffer type.");
-            goto oops;
+            E("Unsupported framebuffer type.");
+            break;
     }
 
-    if (ret) {
-        D("Error while processing input image.");
-        goto oops;
+    if (ret != 0) {
+        E("Error while processing input image.");
+    } else {
+        /* Save in PNG format. */
+        ret = save_png(path, rgb_matrix, fb->width, fb->height);
+        if (ret != 0)
+            E("Failed to save in PNG format.");
     }
 
-    /* Save in PNG format. */
-    if (save_png(path, rgb_matrix, fb->width, fb->height)) {
-        D("Failed to save in PNG format.");
-        ret = -1;
-    }
-
-oops:
     free(rgb_matrix);
-
+    free(fb->data);
     return ret;
 }
