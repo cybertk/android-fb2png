@@ -39,7 +39,7 @@ void print_version() {
         "Android Screenshooter - fb2png\n"
         "Author: Kyan He <kyan.ql.he@gmail.com>\n"
         "Updated by Phil3759 & McKael @xda\n"
-        "v2.0.0 <2014> \n"
+        "v1.0.0 <2014> \n"
         "\n"
     );
 }
